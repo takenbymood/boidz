@@ -46,36 +46,55 @@ def angleDiff(v1,v2):
 	return a
 
 def updateBoids(bs):
-	maxSpeed = 5
+	maxSpeed = 3
 	for i in range(len(bs)):
+		ix = bs[i][0]
+		iy = bs[i][1]
 		vA = [0,0]
 		vC = [0,0]
 		vS = [0,0]
+		vW = [0,0]
 		NNs = 0
 		for j in range(len(bs)):
+			jx = bs[j][0]
+			jy = bs[j][1]
 			if j <= i:
 				continue
 			s = separation(bs[i],bs[j])
 			ms = magsq(s)
-			if ms < 75**2:
+			if ms < 50**2:
 				vA[0]+=bs[j][3]
 				vA[1]+=bs[j][4]
-				vC[0]+=bs[j][0]
-				vC[1]+=bs[j][1]
-				vS[0]+=bs[j][0] - bs[i][0]
-				vS[1]+=bs[j][1] - bs[i][1]
+				vC[0]+=jx
+				vC[1]+=jy
+				vS[0]+=jx - ix
+				vS[1]+=jy - iy
 				NNs += 1
+				if ms<10**2:
+					vS[0]+=(jx - ix)*100
+					vS[1]+=(jx - ix)*100
+
 		if NNs > 0:
 			vA[0] = vA[0]/NNs
 			vA[1] = vA[1]/NNs
-			vC[0] = (vC[0]-bs[i][0])/NNs
-			vC[1] = (vC[1]-bs[i][1])/NNs
+			vC[0] = (vC[0]-ix)/NNs
+			vC[1] = (vC[1]-iy)/NNs
 			vC = normalise(vC)
 			vS = normalise(vS)
 
+		if W - ix < 100 and W - ix > 0.1:
+			vW[0] -= 250.0/(W-ix)
+		elif ix < 100 and ix > 0.1:
+			vW[0] += 250.0/ix
+		if H - iy < 100 and H - iy > 0.1:
+			vW[1] -= 250.0/(H-iy)
+		elif iy < 100 and iy > 0.1:
+			vW[1] += 250.0/iy
+
+
 		v = [0,0]
-		v[0] = 2.0*vA[0]+1.5*vC[0]-0.3*vS[0]+10*bs[i][3]+random.uniform(0,0.1)
-		v[1] = 2.0*vA[1]+1.5*vC[1]-0.3*vS[1]+10*bs[i][4]+random.uniform(0,0.1)
+		v[0] = 2.0*vA[0]+2.0*vC[0]-2.0*vS[0]+3*bs[i][3]+random.uniform(0,0.01)+vW[0]
+		v[1] = 2.0*vA[1]+2.0*vC[1]-2.0*vS[1]+3*bs[i][4]+random.uniform(0,0.01)+vW[1]
 
 		v = normalise(v)
 
@@ -88,11 +107,11 @@ def updateBoids(bs):
 		bs[i][2] = np.arctan2(bs[i][4],bs[i][3])+np.pi*0.5
 
 		if bs[i][0] > W + 20:
-			bs[i][0] = 10
+			bs[i][0] = 0
 		if bs[i][0] < -20:
 			bs[i][0] = W
 		if bs[i][1] > H + 20:
-			bs[i][1] = 10
+			bs[i][1] = 0
 		if bs[i][1] < -20:
 			bs[i][1] = H
 
@@ -123,7 +142,7 @@ BOIDS = []
 for i in range(150):
 	a = random.uniform(0,2*np.pi)
 	v = rotateVector([0,-1],a)
-	BOIDS.append([random.randint(0,W),random.randint(0,H),a,BSPEED*v[0],BSPEED*v[1]])
+	BOIDS.append([random.randint(10,W-10),random.randint(10,H-10),a,BSPEED*v[0],BSPEED*v[1]])
 
 
 
